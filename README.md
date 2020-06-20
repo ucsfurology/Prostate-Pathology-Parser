@@ -1,5 +1,13 @@
 # Natural Language Processing Systems for Pathology Parsing in Limited Data Environments with Uncertainty Estimation
 
+### Anobel Y. Odisho MD MPH (1), Briton Park, BS (2), Nicholas Altieri, BA (2), John DeNero, PhD (3), Matthew R. Cooperberg MD MPH (1,5), Peter R. Carroll MD MPH (1), Bin Yu PhD (2,3,4)
+
+- 1 Department of Urology, UCSF Helen Diller Family Comprehensive Cancer Center, San Francisco
+- 2 Department of Statistics, University of California, Berkeley
+- 3 Department of Electrical Engineering and Computer Science, University of California, Berkeley
+- 4 Chan-Zuckerberg Biohub, San Francisco, California
+- 5 Department of Epidemiology & Biostatistics, University of California, San Francisco
+
 ## Objective
 Cancer is a leading cause of death, but much of the diagnostic information is stored as unstructured data in pathology reports. We aim to improve uncertainty estimates of machine-learning based pathology parsers and evaluate performance in low data settings.
 
@@ -19,4 +27,9 @@ This repository contains the codebase for extracting data from prostate reports.
 Because the data used to train these models are protected, the data and the trained models cannot be public. The data structure were preprocessed from the raw data and are Python dictionaries. The 'train', 'val', and 'test' keys denote the split of the data. The corresponding values are Python lists of dictionaries representing each patient in the data. The labels and text of each patient are accessed through the patient dictionaries. 
 
 For example, data['train'][i]['document'] contains the pathology report as a string for the ith patient in the training split, while data['train'][i]['labels']['TumorType'] contains the label for the data field "Tumor Type" for the ith pateint in the training split. 
+
+
+# Corresponding Author
+Bin Yu, PhD
+binyu@berkeley.edu
 
