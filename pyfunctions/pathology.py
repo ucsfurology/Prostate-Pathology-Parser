@@ -1,12 +1,33 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 from typing import Dict, List, Tuple
 
 prostate_fields = {'classification': ['TreatmentEffect','TumorType','PrimaryGleason','SecondaryGleason','TertiaryGleason',
                           'SeminalVesicleNone','LymphNodesNone','MarginStatusNone','ExtraprostaticExtension',
                           'PerineuralInfiltration','RbCribriform','BenignMargins'],
                    'token_extraction': ['ProstateWeight', 'TumorVolume', 'TStage', 'NStage', 'MStage']}
+
+NUMERIC_PATTERN = re.compile(r"""
+    (?:
+        (?: \d* \. \d+ ) # .1 .12 .123 etc 9.1 etc 98.1 etc
+        |
+        (?: \d+ \.? ) # 1. 12. 123. etc 1 12 123 etc
+    )
+    """, re.VERBOSE)
+
+get_tnm_stage = lambda x: x
+
+
+def get_float(txt):
+    return max((float(x) for x in NUMERIC_PATTERN.findall(txt)))
+
+postprocess = {'ProstateWeight': get_float,
+               'TumorVolume': get_float,
+               'TStage': get_tnm_stage,
+               'NStage': get_tnm_stage,
+               'MStage': get_tnm_stage}
 
 def getProstateMapping():
     """
@@ -32,3 +53,46 @@ def getProstateStageInverseMapping():
     mapping[1] = '0'
 
     return mapping
+
+def label_correctness(predictions, field):
+    predictions['correct'] = 0
+    predictions['final_prediction'] = 0
+    
+    for j in range(len(predictions['label'])):
+        
+        # Get label and prediction
+        label = predictions['label'][j]
+        prediction = postprocess[field](best_token)
+        
+        if field in ['TStage', 'NStage', 'MStage']:
+            
+            stage_encoding = field + label
+            
+            # Encoding for pathologic stage in-text usually starts with pt, yp, or t
+            if prediction[0:2] == 'pt' or prediction[0:2] == 'yp' or prediction[0] == 't':
+                
+                if label == 'nan':
+                    # Case: Stage encoding is nan, expect 0 in predicted token or not available
+                    if stage_type not in prediction or f"{stage_type}0" in prediction:
+                        # Mark as correct
+                        predictions['correct'].iloc[j] = 1
+                        predictions['final_prediction'].iloc[j] = str(predictions['label'][j])
+                    else:
+                        predictions['final_prediction'].iloc[j] = prediction
+                        
+                elif stage_encoding in prediction:
+                    # Case: Stage encoding is contained within predicted token, mark as correct
+                    predictions['correct'].iloc[j] = 1
+                    predictions['final_prediction'].iloc[j] = str(predictions['label'][j])
+                else:
+                    predictions['final_prediction'].iloc[j] = prediction
+                
+        else:
+            if label == prediction:
+                # Case label equals prediction, mark as correct
+                predictions['correct'].iloc[j] = 1
+                predictions['final_prediction'].iloc[j] = predictions['label'][j]
+            else:
+                predictions['final_prediction'].iloc[j] = prediction
+            
+    return predictions
