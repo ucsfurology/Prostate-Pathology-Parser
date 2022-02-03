@@ -21,7 +21,10 @@ get_tnm_stage = lambda x: x
 
 
 def get_float(txt):
-    return max((float(x) for x in NUMERIC_PATTERN.findall(txt)))
+    try:
+        return max((float(x) for x in NUMERIC_PATTERN.findall(txt)))
+    except:
+        return 0
 
 postprocess = {'ProstateWeight': get_float,
                'TumorVolume': get_float,
@@ -62,7 +65,7 @@ def label_correctness(predictions, field):
         
         # Get label and prediction
         label = predictions['label'][j]
-        prediction = postprocess[field](best_token)
+        prediction = postprocess[field](predictions['predicted_token'].iloc[j])
         
         if field in ['TStage', 'NStage', 'MStage']:
             
