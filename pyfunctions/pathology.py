@@ -68,28 +68,36 @@ def label_correctness(predictions, field):
         prediction = postprocess[field](predictions['predicted_token'].iloc[j])
         
         if field in ['TStage', 'NStage', 'MStage']:
-            
-            stage_encoding = field + label
+            stage_type = field[0].lower()
+            stage_encoding = stage_type + str(label)
             
             # Encoding for pathologic stage in-text usually starts with pt, yp, or t
+            
             if prediction[0:2] == 'pt' or prediction[0:2] == 'yp' or prediction[0] == 't':
                 
-                if label == 'nan':
+                if label == 'nan' or label == 'null':
                     # Case: Stage encoding is nan, expect 0 in predicted token or not available
-                    if stage_type not in prediction or f"{stage_type}0" in prediction:
+                    if stage_type not in prediction:
                         # Mark as correct
                         predictions['correct'].iloc[j] = 1
-                        predictions['final_prediction'].iloc[j] = str(predictions['label'][j])
+                        predictions['final_prediction'].iloc[j] = predictions['label'][j]
+                    elif f"{stage_type}0" in prediction:
+                        predictions['correct'].iloc[j] = 1
+                        predictions['final_prediction'].iloc[j] = predictions['label'][j]
                     else:
                         predictions['final_prediction'].iloc[j] = prediction
                         
                 elif stage_encoding in prediction:
                     # Case: Stage encoding is contained within predicted token, mark as correct
                     predictions['correct'].iloc[j] = 1
-                    predictions['final_prediction'].iloc[j] = str(predictions['label'][j])
+                    predictions['final_prediction'].iloc[j] = predictions['label'][j]
                 else:
                     predictions['final_prediction'].iloc[j] = prediction
-                
+            else:
+                if label == 'nan' or label == 'null':
+                    predictions['correct'].iloc[j] = 1
+                    predictions['final_prediction'].iloc[j] = predictions['label'][j]
+                    predictions['y_prob'].iloc[j] = 1 - predictions['y_prob'].iloc[j]
         else:
             if label == prediction:
                 # Case label equals prediction, mark as correct
