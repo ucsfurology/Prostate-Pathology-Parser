@@ -59,7 +59,7 @@ def getProstateStageInverseMapping():
 
 def label_correctness(predictions, field):
     predictions['correct'] = 0
-    predictions['final_prediction'] = 0
+    predictions['final_prediction'] = -1
     
     for j in range(len(predictions['label'])):
         
